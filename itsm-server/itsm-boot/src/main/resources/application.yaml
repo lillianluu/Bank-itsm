@@ -1,0 +1,96 @@
+# ======================================================================
+# ITSM 启动配置
+# 环境变量覆盖规范见设计文档 11.3(配置三级外置:内置默认 → 外部文件 → 环境变量)
+# ======================================================================
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: itsm
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  datasource:
+    url: ${ITS_DB_URL:jdbc:postgresql://localhost:5432/itsm}
+    username: ${ITS_DB_USER:itsm}
+    password: ${ITS_DB_PASSWORD:itsm}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: ${ITS_REDIS_HOST:localhost}
+      port: ${ITS_REDIS_PORT:6379}
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 200MB
+
+flowable:
+  database-schema-update: true
+  async-executor-activate: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+itsm:
+  search:
+    engine: pg                      # pg(默认) | es
+    es:
+      hosts: http://127.0.0.1:9200
+  storage:
+    type: local                     # local(默认) | s3
+    local:
+      path: ${ITS_STORAGE_PATH:./data/files}
+      url-prefix: /api/v1/files
+    s3:
+      endpoint: ${ITS_S3_ENDPOINT:http://127.0.0.1:9000}
+      bucket: ${ITS_S3_BUCKET:itsm}
+      access-key: ${ITS_S3_AK:}
+      secret-key: ${ITS_S3_SK:}
+      path-style: true
+      region: ${ITS_S3_REGION:us-east-1}
+  event:
+    bus: inprocess                  # inprocess(默认) | rocketmq | kafka
+    outbox:
+      retry-interval-seconds: 30
+      max-retry: 5
+
+logging:
+  level:
+    root: info
+    com.itsm: debug
+

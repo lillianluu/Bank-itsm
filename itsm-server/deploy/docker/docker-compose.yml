@@ -1,0 +1,66 @@
+# =====================================================================
+# ITSM 单机编排(设计文档 11.5):boot + PG + Redis,可选 MinIO/ES
+# 用法:DB_PWD=itsm123 docker compose up -d   (Windows: set DB_PWD=itsm123)
+# =====================================================================
+services:
+  itsm:
+    image: itsm/server:dev
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/itsm
+      SPRING_DATASOURCE_USERNAME: itsm
+      SPRING_DATASOURCE_PASSWORD: ${DB_PWD:-itsm}
+      SPRING_DATA_REDIS_HOST: redis
+      ITS_STORAGE_TYPE: local
+      TZ: Asia/Shanghai
+    volumes:
+      - itsm-data:/app/data          # local 附件存储
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=itsm
+      - POSTGRES_USER=itsm
+      - POSTGRES_PASSWORD=${DB_PWD:-itsm}
+      - TZ=Asia/Shanghai
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U itsm" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7
+    volumes:
+      - redis-data:/data
+  # —— 可选增强组件,按需取消注释 ——
+  # minio:
+  #   image: minio/minio
+  #   command: server /data --console-address ":9001"
+  #   ports: [ "9000:9000", "9001:9001" ]
+  #   volumes: [ minio-data:/data ]
+  # elasticsearch:
+  #   image: elasticsearch:8.14.3
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #     - ES_JAVA_OPTS=-Xms1g -Xmx1g
+  #   ports: [ "9200:9200" ]
+  #   volumes: [ es-data:/usr/share/elasticsearch/data ]
+
+volumes:
+  pg-data: {}
+  redis-data: {}
+  minio-data: {}
+  es-data: {}
+  itsm-data: {}
+

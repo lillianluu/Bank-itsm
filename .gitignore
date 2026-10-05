@@ -1,0 +1,29 @@
+# build
+target/
+*.class
+
+# ide
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# node
+node_modules/
+dist/
+
+# runtime data
+logs/
+data/
+*.log
+
+# env
+.env
+.env.*
+
+# os
+.DS_Store
+Thumbs.db
+

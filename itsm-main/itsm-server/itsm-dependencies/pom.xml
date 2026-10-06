@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 独立 BOM:不继承 itsm-parent,避免 parent 导入 BOM 造成自引用循环;
+         版本属性需在本 POM 内自持(设计文档 10.3) -->
+    <groupId>com.itsm</groupId>
+    <artifactId>itsm-dependencies</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>ITSM Dependencies (BOM)</name>
+    <description>统一三方版本管理与内部模块版本</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot.version>3.2.5</spring-boot.version>
+        <flowable.version>7.0.1</flowable.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <jjwt.version>0.12.5</jjwt.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <elasticsearch-java.version>8.11.4</elasticsearch-java.version>
+        <awssdk.version>2.25.60</awssdk.version>
+        <!-- 预留:RocketMQ 接入时启用(需适配 Boot3,当前事件总线默认进程内实现) -->
+        <!-- <rocketmq-spring.version>2.3.1</rocketmq-spring.version> -->
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ===== 三方 BOM ===== -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${awssdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- ===== 内部模块 ===== -->
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-common</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-domain</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-engine</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-search-starter</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-storage-starter</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-event-starter</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-module-platform</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-module-ticket</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-module-catalog</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-module-knowledge</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-module-report</artifactId><version>${project.version}</version></dependency>
+            <dependency><groupId>com.itsm</groupId><artifactId>itsm-boot</artifactId><version>${project.version}</version></dependency>
+
+            <!-- ===== 工作流引擎 ===== -->
+            <dependency>
+                <groupId>org.flowable</groupId>
+                <artifactId>flowable-spring-boot-starter</artifactId>
+                <version>${flowable.version}</version>
+            </dependency>
+
+            <!-- ===== ORM ===== -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- ===== 认证(JWT) ===== -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+
+            <!-- ===== API 文档 ===== -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- ===== 可选:ES 8 增强检索(itsm-search-starter) ===== -->
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>${elasticsearch-java.version}</version>
+            </dependency>
+            <!-- 可选:对象存储走 AWS SDK v2 S3(software.amazon.awssdk:bom 已管理) -->
+        </dependencies>
+    </dependencyManagement>
+</project>
+

@@ -1,0 +1,9 @@
+.git
+.idea
+.vscode
+**/node_modules
+itsm-ui/dist
+logs
+data
+*.log
+docs

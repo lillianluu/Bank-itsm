@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.itsm</groupId>
+        <artifactId>itsm-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>itsm-boot</artifactId>
+    <name>ITSM Boot</name>
+    <description>唯一启动器:装配全部模块与可插拔 starter,打包 FatJar(设计文档 10.3)</description>
+
+    <dependencies>
+        <!-- ===== 内部模块 ===== -->
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-search-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-storage-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-event-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-module-platform</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-module-ticket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-module-catalog</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-module-knowledge</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-module-report</artifactId>
+        </dependency>
+
+        <!-- ===== Web / 安全 / 文档 / 运维 ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+
+        <!-- ===== 存储层 ===== -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>itsm-boot</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 分层 jar:支持 layertools extract 优化镜像构建(设计文档 11.5) -->
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+

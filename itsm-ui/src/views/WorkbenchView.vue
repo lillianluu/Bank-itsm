@@ -1,42 +1,136 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import http from '../api/http';
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import {
+  ticketStore, TYPE_LABEL, TYPE_TAG,
+  STATUS_LABEL, STATUS_TAG
+} from '../api/ticket';
+import type { Ticket } from '../api/ticket';
 
-interface Overview {
-  todayNew: number;
-  pending: number;
-  processing: number;
-  overdue: number;
+const router = useRouter();
+
+// 原型:统计来自内存工单仓库;后端就绪后改调 GET /api/v1/dashboard/overview
+const overview = computed(() => ticketStore.overview());
+
+/** 待受理工单(前 5 条) */
+const pendingRows = computed<Ticket[]>(() =>
+  ticketStore.list({ status: 'PENDING' }).slice(0, 5));
+
+function fmtTime(v: string): string {
+  return new Date(v).toLocaleString('zh-CN', { hour12: false });
 }
-
-const overview = ref<Overview>({ todayNew: 0, pending: 0, processing: 0, overdue: 0 });
-
-onMounted(async () => {
-  try {
-    overview.value = await http.get<never, Overview>('/dashboard/overview');
-  } catch {
-    // 骨架阶段:后端未启动时静默降级
-  }
-});
 </script>
 
 <template>
-  <div style="padding: 24px">
-    <h2>服务台看板</h2>
+  <div>
+    <!-- 统计卡 -->
     <el-row :gutter="16">
-      <el-col :span="6">
-        <el-card><el-statistic title="今日新建" :value="overview.todayNew" /></el-card>
+      <el-col :span="5">
+        <el-card shadow="never" class="stat-card">
+          <el-statistic title="今日新建" :value="overview.todayNew" />
+        </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card><el-statistic title="待受理" :value="overview.pending" /></el-card>
+      <el-col :span="5">
+        <el-card shadow="never" class="stat-card">
+          <el-statistic title="待受理" :value="overview.pending" :value-style="{ color: '#f59e0b' }" />
+        </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card><el-statistic title="处理中" :value="overview.processing" /></el-card>
+      <el-col :span="5">
+        <el-card shadow="never" class="stat-card">
+          <el-statistic title="处理中" :value="overview.processing" :value-style="{ color: '#3b82f6' }" />
+        </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card><el-statistic title="已超期" :value="overview.overdue" /></el-card>
+      <el-col :span="5">
+        <el-card shadow="never" class="stat-card">
+          <el-statistic title="已超期" :value="overview.overdue" :value-style="{ color: '#ef4444' }" />
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="never" class="stat-card">
+          <el-statistic title="本周解决率" :value="overview.resolveRate" suffix="%" :value-style="{ color: '#10b981' }" />
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" style="margin-top: 16px">
+      <!-- 待受理列表 -->
+      <el-col :span="16">
+        <el-card shadow="never">
+          <template #header>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span>待受理工单</span>
+              <el-button link type="primary" @click="router.push('/tickets')">
+                进入工单管理 →
+              </el-button>
+            </div>
+          </template>
+          <el-table :data="pendingRows" size="small">
+            <el-table-column label="单号" width="170">
+              <template #default="{ row }">
+                <el-link type="primary" @click="router.push(`/tickets/${row.id}`)">{{ row.no }}</el-link>
+              </template>
+            </el-table-column>
+            <el-table-column label="类型" width="90">
+              <template #default="{ row }">
+                <el-tag :type="TYPE_TAG[row.type as keyof typeof TYPE_TAG]" effect="plain" size="small">
+                  {{ TYPE_LABEL[row.type as keyof typeof TYPE_LABEL] }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
+            <el-table-column label="状态" width="90" align="center">
+              <template #default="{ row }">
+                <el-tag :type="STATUS_TAG[row.status as keyof typeof STATUS_TAG]" size="small">
+                  {{ STATUS_LABEL[row.status as keyof typeof STATUS_LABEL] }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" width="160">
+              <template #default="{ row }">{{ fmtTime(row.createdAt) }}</template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-if="pendingRows.length === 0" description="没有待受理工单,干得漂亮 🎉" :image-size="80" />
+        </el-card>
+      </el-col>
+
+      <!-- 快捷入口 -->
+      <el-col :span="8">
+        <el-card shadow="never">
+          <template #header>快捷操作</template>
+          <div class="quick-grid">
+            <el-button size="large" type="primary" plain @click="router.push('/tickets/create')">
+              ＋ 提交事件 / 请求
+            </el-button>
+            <el-button size="large" plain @click="router.push('/my-tickets/todo')">
+              📋 我的工单
+            </el-button>
+            <el-button size="large" plain disabled>
+              📚 知识库(V1.1)
+            </el-button>
+            <el-button size="large" plain disabled>
+              📊 报表中心(M3)
+            </el-button>
+          </div>
+        </el-card>
       </el-col>
     </el-row>
   </div>
 </template>
+
+<style scoped>
+.stat-card :deep(.el-statistic__head) {
+  font-size: 13px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quick-grid .el-button {
+  margin: 0;
+  width: 100%;
+}
+</style>
 

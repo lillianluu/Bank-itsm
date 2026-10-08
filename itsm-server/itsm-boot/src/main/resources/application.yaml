@@ -44,6 +44,10 @@ mybatis-plus:
     db-config:
       id-type: assign_id
       logic-delete-field: deleted
+      # PostgreSQL boolean 列:必须用 true/false 字面量(默认 1/0 在 PG 会报
+      # "operator does not exist: boolean = integer"),生成 SQL 形如 deleted=true
+      logic-delete-value: true
+      logic-not-delete-value: false
 
 springdoc:
   api-docs:
@@ -67,6 +71,11 @@ management:
       enabled: true
 
 itsm:
+  security:
+    jwt:
+      secret: ${ITS_JWT_SECRET:itsm-dev-secret-please-change-0123456789abcdef}
+      access-token-minutes: 30
+      refresh-token-days: 7
   search:
     engine: pg                      # pg(默认) | es
     es:

@@ -12,14 +12,16 @@ spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
   datasource:
-    url: ${ITS_DB_URL:jdbc:postgresql://localhost:5432/itsm}
-    username: ${ITS_DB_USER:itsm}
-    password: ${ITS_DB_PASSWORD:itsm}
+    url: ${ITS_DB_URL:jdbc:postgresql://localhost:5432/itsdb?currentSchema=itsm}
+    username: ${ITS_DB_USER:itsm_app}
+    password: ${ITS_DB_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+    # 业务表与 flyway_schema_history 均落在 itsm schema(不存在时 Flyway 会自动创建)
+    schemas: itsm
   data:
     redis:
       host: ${ITS_REDIS_HOST:localhost}
@@ -69,6 +71,10 @@ management:
       enabled: true
     readinessState:
       enabled: true
+    # Redis 为可选组件(M2 才用于令牌黑名单);Windows 版 Redis 的 INFO 响应
+    # 会让 Lettuce 健康检查抛 "Malformed \uxxxx encoding" 误报 DOWN,先关闭
+    redis:
+      enabled: false
 
 itsm:
   security:

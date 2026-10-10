@@ -37,8 +37,9 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth
+                        // /error:异常转发到 BasicErrorController 时保持放行,避免二次包装成 401
                         .requestMatchers("/actuator/**", "/swagger-ui/**", "/swagger-ui.html",
-                                "/v3/api-docs/**", "/doc.html").permitAll()
+                                "/v3/api-docs/**", "/doc.html", "/error").permitAll()
                         .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e

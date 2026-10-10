@@ -2,19 +2,28 @@
 import { nextTick, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox, type ElTree } from 'element-plus';
 import {
-  BUILTIN_ADMIN, DATA_SCOPE_LABEL, menuStore, roleStore,
-  type DataScope, type MenuNode, type Role
-} from '../../api/admin';
+  BUILTIN_ADMIN, DATA_SCOPE_LABEL, assignRoleMenus, createRole, deleteRole,
+  fetchMenuTree, listRoles, updateRole,
+  type DataScope, type MenuTreeNode, type Role, type RoleSaveCmd
+} from '../../api/role';
 
 const rows = ref<Role[]>([]);
+const loading = ref(false);
 
-function load(): void {
-  rows.value = roleStore.list();
+async function load(): Promise<void> {
+  loading.value = true;
+  try {
+    rows.value = await listRoles();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    loading.value = false;
+  }
 }
 onMounted(load);
 
 // ===== 新增 / 编辑 =====
-const dialog = reactive({ visible: false, isEdit: false, editingId: 0, codeLocked: false });
+const dialog = reactive({ visible: false, isEdit: false, editingId: 0, codeLocked: false, saving: false });
 const form = reactive<{
   name: string; code: string; dataScope: DataScope; status: 0 | 1; remark: string;
 }>({ name: '', code: '', dataScope: 'SELF', status: 1, remark: '' });
@@ -40,61 +49,94 @@ function openEdit(row: Role): void {
   Object.assign(form, { name: row.name, code: row.code, dataScope: row.dataScope, status: row.status, remark: row.remark ?? '' });
   dialog.visible = true;
 }
+function buildCmd(): RoleSaveCmd {
+  return {
+    name: form.name.trim(), code: form.code.trim(),
+    dataScope: form.dataScope, status: form.status, remark: form.remark.trim() || null
+  };
+}
 function submit(): void {
-  formRef.value?.validate((valid: boolean) => {
+  formRef.value?.validate(async (valid: boolean) => {
     if (!valid) {
       return;
     }
-    const payload = {
-      name: form.name.trim(), code: form.code.trim(),
-      dataScope: form.dataScope, status: form.status, remark: form.remark.trim() || null
-    };
+    dialog.saving = true;
     try {
       if (dialog.isEdit) {
-        roleStore.update(dialog.editingId, payload);
+        await updateRole(dialog.editingId, buildCmd());
         ElMessage.success('已保存');
       } else {
-        roleStore.create(payload);
+        await createRole(buildCmd());
         ElMessage.success('已创建');
       }
       dialog.visible = false;
-      load();
+      await load();
     } catch (e) {
       ElMessage.error((e as Error).message);
+    } finally {
+      dialog.saving = false;
     }
   });
 }
 
 // ===== 分配菜单 =====
-const grantDialog = reactive({ visible: false, roleId: 0, roleName: '' });
+const grantDialog = reactive({ visible: false, roleId: 0, roleName: '', saving: false });
 const treeRef = ref<InstanceType<typeof ElTree>>();
-const menuTree = ref<MenuNode[]>([]);
+const menuTree = ref<MenuTreeNode[]>([]);
+/** 树中非叶子(目录/菜单)节点 id:回显时需剔除,避免父节点全选放大授权 */
+const treeParentIds = new Set<number>();
+
+function collectParentIds(nodes: MenuTreeNode[]): void {
+  nodes.forEach((n) => {
+    if (n.children?.length) {
+      treeParentIds.add(n.id);
+      collectParentIds(n.children);
+    }
+  });
+}
 
 async function openGrant(row: Role): Promise<void> {
   grantDialog.roleId = row.id;
   grantDialog.roleName = row.name;
-  menuTree.value = menuStore.navTree();
   grantDialog.visible = true;
+  try {
+    menuTree.value = await fetchMenuTree();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+    return;
+  }
+  treeParentIds.clear();
+  collectParentIds(menuTree.value);
   await nextTick();
-  // 全集回显:父节点也置为勾选,提交时合并半选即可
-  treeRef.value?.setCheckedKeys(row.menuIds, false);
+  // 仅勾选叶子(按钮/无子菜单):父节点由 el-tree 自动半选,
+  // 提交时合并 checked + halfChecked,与后端"全集存库"一致
+  const leafIds = row.menuIds.filter((id) => !treeParentIds.has(id));
+  treeRef.value?.setCheckedKeys(leafIds);
 }
-function submitGrant(): void {
+async function submitGrant(): Promise<void> {
   const checked = treeRef.value?.getCheckedKeys(false) as number[] ?? [];
   const half = treeRef.value?.getHalfCheckedKeys() as number[] ?? [];
-  roleStore.assignMenus(grantDialog.roleId, [...checked, ...half]);
-  grantDialog.visible = false;
-  ElMessage.success(`已保存「${grantDialog.roleName}」的菜单权限`);
+  grantDialog.saving = true;
+  try {
+    await assignRoleMenus(grantDialog.roleId, [...checked, ...half]);
+    grantDialog.visible = false;
+    ElMessage.success(`已保存「${grantDialog.roleName}」的菜单权限`);
+    await load();
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    grantDialog.saving = false;
+  }
 }
 
 // ===== 删除 =====
 function onDelete(row: Role): void {
-  ElMessageBox.confirm(`确认删除角色「${row.name}」?`, '删除确认', { type: 'warning' })
-    .then(() => {
+  ElMessageBox.confirm(`确认删除角色「${row.name}」?删除后不可在列表中恢复。`, '删除确认', { type: 'warning' })
+    .then(async () => {
       try {
-        roleStore.remove(row.id);
+        await deleteRole(row.id);
         ElMessage.success('已删除');
-        load();
+        await load();
       } catch (e) {
         ElMessage.error((e as Error).message);
       }
@@ -111,7 +153,7 @@ function onDelete(row: Role): void {
       <el-button type="primary" @click="openCreate">新增角色</el-button>
     </div>
 
-    <el-table :data="rows" stripe>
+    <el-table v-loading="loading" :data="rows" stripe>
       <el-table-column prop="name" label="角色名称" min-width="140" />
       <el-table-column label="角色编码" min-width="120">
         <template #default="{ row }">
@@ -167,13 +209,14 @@ function onDelete(row: Role): void {
     </el-form>
     <template #footer>
       <el-button @click="dialog.visible = false">取消</el-button>
-      <el-button type="primary" @click="submit">确定</el-button>
+      <el-button type="primary" :loading="dialog.saving" @click="submit">确定</el-button>
     </template>
   </el-dialog>
 
   <!-- 分配菜单 -->
   <el-dialog v-model="grantDialog.visible" :title="`分配菜单 - ${grantDialog.roleName}`" width="480px">
     <el-tree
+      v-loading="!menuTree.length"
       ref="treeRef"
       :data="menuTree"
       node-key="id"
@@ -183,7 +226,7 @@ function onDelete(row: Role): void {
     />
     <template #footer>
       <el-button @click="grantDialog.visible = false">取消</el-button>
-      <el-button type="primary" @click="submitGrant">确定</el-button>
+      <el-button type="primary" :loading="grantDialog.saving" @click="submitGrant">确定</el-button>
     </template>
   </el-dialog>
 </template>

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import http from '../api/http';
+const canViewDept = ref(false);
+onMounted(async () => {
+  try {
+    const me = await http.get<never, { roles: string[]; perms: string[] }>('/auth/me');
+    canViewDept.value = me.roles.includes('ADMIN') || me.perms.includes('sys:dept:list');
+  } catch { canViewDept.value = false; }
+});
 import { useRoute, useRouter } from 'vue-router';
 import { CURRENT_USER } from '../api/ticket';
 
@@ -54,7 +62,7 @@ function onLogout(): void {
             <span>系统管理</span>
           </template>
           <el-menu-item index="/system/user">用户管理</el-menu-item>
-          <el-menu-item index="/system/dept">部门管理</el-menu-item>
+          <el-menu-item v-if="canViewDept" index="/system/dept">部门管理</el-menu-item>
           <el-menu-item index="/system/role">角色管理</el-menu-item>
           <el-menu-item index="/system/menu">菜单管理</el-menu-item>
           <el-menu-item index="/system/process">流程管理</el-menu-item>

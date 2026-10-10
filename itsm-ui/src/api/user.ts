@@ -21,16 +21,7 @@ export interface PageResult<T> {
 
 // ================= 部门树(后端 DeptNode) =================
 
-export interface DeptNode {
-  id: number;
-  parentId: number;
-  name: string;
-  sort: number;
-  leader: string | null;
-  phone: string | null;
-  status: 0 | 1;
-  children: DeptNode[];
-}
+export { fetchDeptTree, type DeptNode } from './dept';
 
 // ================= 角色(后端 RoleVO) =================
 
@@ -114,11 +105,6 @@ export function deleteUsers(ids: number[]): Promise<void> {
 /** 重置密码 */
 export function resetUserPassword(id: number, newPassword: string): Promise<void> {
   return http.put<never, void>(`/users/${id}/password`, { newPassword });
-}
-
-/** 部门树(下拉选项) */
-export function fetchDeptTree(): Promise<DeptNode[]> {
-  return http.get<never, DeptNode[]>('/depts/tree');
 }
 
 /** 角色列表(下拉选项) */

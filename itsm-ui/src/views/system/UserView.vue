@@ -100,12 +100,14 @@ const rules = {
 };
 
 function openCreate(): void {
+  loadOptions();
   dialog.isEdit = false;
   dialog.editingId = 0;
   Object.assign(form, { username: '', nickname: '', password: '', deptId: undefined, email: '', phone: '', status: 1, roleIds: [] });
   dialog.visible = true;
 }
 function openEdit(row: UserVO): void {
+  loadOptions();
   dialog.isEdit = true;
   dialog.editingId = row.id;
   Object.assign(form, {
@@ -209,7 +211,7 @@ function onDelete(row: UserVO): void {
     <!-- 筛选区 -->
     <div class="toolbar">
       <el-input v-model="filter.keyword" placeholder="用户名 / 姓名" clearable style="width: 200px" @keyup.enter="search" />
-      <el-tree-select v-model="filter.deptId" :data="deptOptions" placeholder="所属部门" clearable check-strictly style="width: 180px" />
+      <el-tree-select v-model="filter.deptId" :data="deptOptions" filterable placeholder="所属部门" clearable check-strictly style="width: 180px" />
       <el-select v-model="filter.status" placeholder="状态" clearable style="width: 120px">
         <el-option label="启用" :value="1" />
         <el-option label="停用" :value="0" />
@@ -279,7 +281,7 @@ function onDelete(row: UserVO): void {
         <el-input v-model="form.password" type="password" show-password placeholder="至少 6 位" />
       </el-form-item>
       <el-form-item label="所属部门" prop="deptId">
-        <el-tree-select v-model="form.deptId" :data="deptOptions" check-strictly style="width: 100%" />
+        <el-tree-select v-model="form.deptId" :data="deptOptions" filterable check-strictly style="width: 100%" />
       </el-form-item>
       <el-form-item label="邮箱">
         <el-input v-model="form.email" />

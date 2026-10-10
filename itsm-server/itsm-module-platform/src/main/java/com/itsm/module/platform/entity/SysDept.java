@@ -1,6 +1,8 @@
 package com.itsm.module.platform.entity;
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.itsm.domain.base.BaseDO;
 import lombok.Data;
@@ -16,8 +18,11 @@ public class SysDept extends BaseDO {
     private String ancestors;
     private String name;
     private Integer sort;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String leader;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String phone;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String email;
     private Integer status;
     @TableLogic

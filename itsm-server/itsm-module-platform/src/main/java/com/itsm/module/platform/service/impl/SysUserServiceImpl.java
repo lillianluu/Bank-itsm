@@ -199,7 +199,7 @@ public class SysUserServiceImpl implements SysUserService {
             List<String> rnames = rids.stream().map(rid -> roleNames.get(rid))
                     .filter(Objects::nonNull).toList();
             return new UserVO(u.getId(), u.getUsername(), u.getNickname(), u.getDeptId(),
-                    deptNames.get(u.getDeptId()), u.getEmail(), u.getPhone(), u.getStatus(),
+                    u.getDeptId() == null ? null : deptNames.getOrDefault(u.getDeptId(), "部门已删除"), u.getEmail(), u.getPhone(), u.getStatus(),
                     new ArrayList<>(rids), rnames, u.getCreatedAt());
         }).collect(Collectors.toList());
     }

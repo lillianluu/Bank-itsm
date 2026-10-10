@@ -11,12 +11,13 @@ public record DeptNode(
         Integer sort,
         String leader,
         String phone,
+        String email,
         Integer status,
         List<DeptNode> children) {
 
     public static DeptNode of(Long id, Long parentId, String name, Integer sort,
-                              String leader, String phone, Integer status) {
-        return new DeptNode(id, parentId, name, sort, leader, phone, status, new ArrayList<>());
+                              String leader, String phone, String email, Integer status) {
+        return new DeptNode(id, parentId, name, sort, leader, phone, email, status, new ArrayList<>());
     }
 }
 

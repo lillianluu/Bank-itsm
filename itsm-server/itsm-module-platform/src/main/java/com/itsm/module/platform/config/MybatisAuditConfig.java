@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /** 审计字段自动填充:createdBy/createdAt/updatedBy/updatedAt(BaseDO) */
 @Configuration(proxyBeanMethods = false)
@@ -21,7 +21,7 @@ public class MybatisAuditConfig {
 
             @Override
             public void insertFill(MetaObject metaObject) {
-                LocalDateTime now = LocalDateTime.now();
+                OffsetDateTime now = OffsetDateTime.now();
                 String operator = operator();
                 fillIfPresent(metaObject, "createdAt", now);
                 fillIfPresent(metaObject, "createdBy", operator);
@@ -31,7 +31,7 @@ public class MybatisAuditConfig {
 
             @Override
             public void updateFill(MetaObject metaObject) {
-                fillIfPresent(metaObject, "updatedAt", LocalDateTime.now());
+                fillIfPresent(metaObject, "updatedAt", OffsetDateTime.now());
                 fillIfPresent(metaObject, "updatedBy", operator());
             }
 

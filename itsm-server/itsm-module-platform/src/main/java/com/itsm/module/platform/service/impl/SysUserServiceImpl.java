@@ -55,7 +55,9 @@ public class SysUserServiceImpl implements SysUserService {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.<SysUser>lambdaQuery();
         if (StringUtils.hasText(query.keyword())) {
             wrapper.and(w -> w.like(SysUser::getUsername, query.keyword())
-                    .or().like(SysUser::getNickname, query.keyword()));
+                    .or().like(SysUser::getNickname, query.keyword())
+                    .or().like(SysUser::getEmail, query.keyword())
+                    .or().like(SysUser::getPhone, query.keyword()));
         }
         wrapper.eq(query.deptId() != null, SysUser::getDeptId, query.deptId())
                 .eq(query.status() != null, SysUser::getStatus, query.status())

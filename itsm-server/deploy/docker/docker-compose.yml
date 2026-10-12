@@ -3,6 +3,14 @@
 # 用法:DB_PWD=itsm123 docker compose up -d   (Windows: set DB_PWD=itsm123)
 # =====================================================================
 services:
+  ui:
+    image: itsm/ui:dev
+    build:
+      context: ../../../itsm-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      - itsm
   itsm:
     image: itsm/server:dev
     build:
@@ -11,7 +19,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/itsm
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/itsm?currentSchema=itsm,public
       SPRING_DATASOURCE_USERNAME: itsm
       SPRING_DATASOURCE_PASSWORD: ${DB_PWD:-itsm}
       SPRING_DATA_REDIS_HOST: redis
@@ -26,6 +34,8 @@ services:
         condition: service_started
   postgres:
     image: postgres:16
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       - POSTGRES_DB=itsm
       - POSTGRES_USER=itsm
@@ -40,6 +50,8 @@ services:
       retries: 10
   redis:
     image: redis:7
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
   # —— 可选增强组件,按需取消注释 ——
@@ -63,4 +75,3 @@ volumes:
   minio-data: {}
   es-data: {}
   itsm-data: {}
-

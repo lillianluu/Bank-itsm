@@ -173,3 +173,32 @@ itsm:
 4. ES 检索实现补全、RocketMQ 接入、Outbox 补偿任务;
 5. 前端工程见仓库根目录 `itsm-ui/`。
 
+
+## 六、本地 Docker 运行前后端
+
+在仓库根目录执行:
+
+```bash
+mvn -f itsm-server/pom.xml -DskipTests package
+docker compose -f itsm-server/deploy/docker/docker-compose.yml up -d --build
+```
+
+- 前端: http://localhost:5173 (Nginx 提供静态页面,`/api/` 代理到后端)
+- 后端: http://localhost:8080
+- 默认管理员: `admin` / `admin123`
+- PostgreSQL: `localhost:5432/itsm`,默认用户名和密码均为 `itsm`
+- Redis: `localhost:6379`
+
+PostgreSQL、Redis 和附件使用 Docker 命名卷持久化。后端启动时自动执行 Flyway 迁移并初始化 Flowable 表。
+
+```bash
+# 查看运行状态和后端日志
+docker compose -f itsm-server/deploy/docker/docker-compose.yml ps
+docker compose -f itsm-server/deploy/docker/docker-compose.yml logs -f itsm
+
+# 停止所有服务并保留数据卷
+docker compose -f itsm-server/deploy/docker/docker-compose.yml down
+
+# 再次启动
+docker compose -f itsm-server/deploy/docker/docker-compose.yml up -d
+```

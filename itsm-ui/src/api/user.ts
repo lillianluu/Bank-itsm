@@ -41,7 +41,7 @@ export interface UserVO {
   id: number;
   username: string;
   nickname: string;
-  deptId: number | null;
+  deptId: string | null;
   deptName: string | null;
   email: string | null;
   phone: string | null;
@@ -56,7 +56,7 @@ export interface UserPageQuery {
   pageNum?: number;
   pageSize?: number;
   keyword?: string;
-  deptId?: number;
+  deptId?: string;
   status?: 0 | 1;
 }
 
@@ -64,7 +64,7 @@ export interface UserCreateCmd {
   username: string;
   password: string;
   nickname: string;
-  deptId: number | null;
+  deptId: string | null;
   email: string | null;
   phone: string | null;
   status: 0 | 1;
@@ -73,7 +73,7 @@ export interface UserCreateCmd {
 
 export interface UserUpdateCmd {
   nickname: string;
-  deptId: number | null;
+  deptId: string | null;
   email: string | null;
   phone: string | null;
   status: 0 | 1;

@@ -6,7 +6,7 @@ import com.itsm.domain.base.BaseDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /** 用户 */
 @Data
@@ -21,7 +21,7 @@ public class SysUser extends BaseDO {
     private String phone;
     private Long deptId;
     private Integer status;
-    private LocalDateTime lastLoginAt;
+    private OffsetDateTime lastLoginAt;
     @TableLogic
     private Boolean deleted;
 }

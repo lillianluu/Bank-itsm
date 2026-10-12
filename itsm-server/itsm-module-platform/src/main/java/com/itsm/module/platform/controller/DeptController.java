@@ -1,7 +1,10 @@
 package com.itsm.module.platform.controller;
 
 import com.itsm.common.api.Result;
+import com.itsm.common.api.PageResult;
 import com.itsm.module.platform.dto.DeptNode;
+import com.itsm.module.platform.dto.UserQuery;
+import com.itsm.module.platform.service.SysUserService;
 import com.itsm.module.platform.dto.DeptSaveCmd;
 import com.itsm.module.platform.security.RequirePerm;
 import com.itsm.module.platform.service.SysDeptService;
@@ -25,6 +28,30 @@ import java.util.List;
 public class DeptController {
 
     private final SysDeptService deptService;
+    private final SysUserService userService;
+
+    public record LeaderOption(Long id, String username, String nickname, String email, String phone) {}
+
+    @GetMapping("/leader-options")
+    @RequirePerm("sys:dept:list")
+    public Result<List<LeaderOption>> leaderOptions(String keyword) {
+        return Result.ok(userService.page(new UserQuery(1, 50,
+                keyword == null ? null : keyword.trim(), null, 1)).getRecords().stream()
+                .map(u -> new LeaderOption(u.id(), u.username(), u.nickname(), u.email(), u.phone()))
+                .toList());
+    }
+
+
+    @GetMapping("/{id}/employees")
+    @RequirePerm("sys:dept:list")
+    public Result<PageResult<LeaderOption>> employees(@PathVariable Long id, Integer pageNum, Integer pageSize) {
+        int page = pageNum == null ? 1 : Math.max(1, pageNum);
+        int size = pageSize == null ? 20 : Math.max(1, Math.min(100, pageSize));
+        var users = userService.page(new UserQuery(page, size, null, id, null));
+        return Result.ok(PageResult.of(users.getTotal(), page, size, users.getRecords().stream()
+                .map(u -> new LeaderOption(u.id(), u.username(), u.nickname(), u.email(), u.phone()))
+                .toList()));
+    }
 
     @GetMapping("/tree")
     @RequirePerm("sys:dept:list")
@@ -34,8 +61,8 @@ public class DeptController {
 
     @PostMapping
     @RequirePerm("sys:dept:add")
-    public Result<Long> create(@Valid @RequestBody DeptSaveCmd cmd) {
-        return Result.ok(deptService.create(cmd));
+    public Result<String> create(@Valid @RequestBody DeptSaveCmd cmd) {
+        return Result.ok(deptService.create(cmd).toString());
     }
 
     @PutMapping("/{id}")

@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static com.itsm.common.api.ErrorCode.FORBIDDEN;
@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
     private void touchLastLogin(Long userId) {
         SysUser upd = new SysUser();
         upd.setId(userId);
-        upd.setLastLoginAt(LocalDateTime.now());
+        upd.setLastLoginAt(OffsetDateTime.now());
         userMapper.updateById(upd);
     }
 }

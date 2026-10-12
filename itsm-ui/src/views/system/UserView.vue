@@ -21,7 +21,7 @@ async function loadOptions(): Promise<void> {
   }
 }
 
-function toTreeSelectOptions(nodes: DeptNode[]): { value: number; label: string; children?: unknown[] }[] {
+function toTreeSelectOptions(nodes: DeptNode[]): { value: string; label: string; children?: unknown[] }[] {
   return nodes.map((n) => ({
     value: n.id,
     label: n.name,
@@ -36,7 +36,7 @@ function fmt(v: string): string {
 
 // ===== 列表与筛选(分页) =====
 const loading = ref(false);
-const filter = reactive<{ keyword: string; deptId?: number; status?: 0 | 1 }>({ keyword: '' });
+const filter = reactive<{ keyword: string; deptId?: string; status?: 0 | 1 }>({ keyword: '' });
 const pageNum = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
@@ -84,7 +84,7 @@ onMounted(() => {
 const dialog = reactive({ visible: false, isEdit: false, editingId: 0 });
 const form = reactive<{
   username: string; nickname: string; password: string;
-  deptId?: number; email: string; phone: string;
+  deptId?: string; email: string; phone: string;
   status: 0 | 1; roleIds: number[];
 }>({ username: '', nickname: '', password: '', deptId: undefined, email: '', phone: '', status: 1, roleIds: [] });
 const formRef = ref();

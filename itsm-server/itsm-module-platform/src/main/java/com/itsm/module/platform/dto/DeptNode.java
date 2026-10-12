@@ -1,12 +1,15 @@
 package com.itsm.module.platform.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /** 部门树节点 */
 public record DeptNode(
-        Long id,
-        Long parentId,
+        @JsonSerialize(using = ToStringSerializer.class) Long id,
+        @JsonSerialize(using = ToStringSerializer.class) Long parentId,
         String name,
         Integer sort,
         String leader,
